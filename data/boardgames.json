@@ -1,0 +1,165 @@
+{
+  "jogos": [
+    {
+      "id_jogo": 43761,
+      "nm_jogo": "Old Dragon 2ª Edição: Livro I - Regras Básicas",
+      "nm_original": "Old Dragon 2ª Edição: Livro I - Regras Básicas",
+      "ano_publicacao": 2022,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/43761_t.jpg",
+      "link": "jogo/old-dragon-2-edicao-livro-i-regras-basicas"
+    },
+    {
+      "id_jogo": 36265,
+      "nm_jogo": "The Castles of Burgundy: Special Edition",
+      "nm_original": "The Castles of Burgundy: Special Edition",
+      "ano_publicacao": 2023,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/36265_t.jpg",
+      "link": "jogo/the-castles-of-burgundy-special-edition"
+    },
+    {
+      "id_jogo": 13494,
+      "nm_jogo": "Brass: Birmingham",
+      "nm_original": "Brass: Birmingham",
+      "ano_publicacao": 2018,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/13494_t.jpg",
+      "link": "jogo/brass-birmingham"
+    },
+    {
+      "id_jogo": 8176,
+      "nm_jogo": "Dungeons & Dragons (5ª Edição): Livro do Jogador",
+      "nm_original": "Dungeons & Dragons (5th Edition) - Player's Handbook",
+      "ano_publicacao": 2014,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/8176_t.jpg",
+      "link": "jogo/dungeons-dragons-5th-edition-player-s-handbook"
+    },
+    {
+      "id_jogo": 19085,
+      "nm_jogo": "Chamado de Cthulhu (7ª Edição) - Livro do Guardião",
+      "nm_original": "Call of Cthulhu (7th Edition) - Keeper Rulebook",
+      "ano_publicacao": 2014,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/19085_t.jpg",
+      "link": "jogo/call-of-cthulhu-7th-edition-keeper-rulebook"
+    },
+    {
+      "id_jogo": 64469,
+      "nm_jogo": "SETI: Busca por Inteligência Extraterrestre",
+      "nm_original": "SETI: Search for Extraterrestrial Intelligence",
+      "ano_publicacao": 2024,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/64469_t.jpg",
+      "link": "jogo/seti-search-for-extraterrestrial-intelligence"
+    },
+    {
+      "id_jogo": 13749,
+      "nm_jogo": "Projeto Gaia",
+      "nm_original": "Gaia Project",
+      "ano_publicacao": 2017,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/13749_t.jpg",
+      "link": "jogo/gaia-project"
+    },
+    {
+      "id_jogo": 21102,
+      "nm_jogo": "Vampiro: A Máscara",
+      "nm_original": "Vampire: The Masquerade (2nd Edition)",
+      "ano_publicacao": 1992,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/21102_t.jpg",
+      "link": "jogo/vampire-the-masquerade-2nd-edition"
+    },
+    {
+      "id_jogo": 14902,
+      "nm_jogo": "Dungeons & Dragons 3.5a. Edição: Livro do Jogador",
+      "nm_original": "Player's Handbook (D&D 3.5e)",
+      "ano_publicacao": 2003,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/14902_t.jpg",
+      "link": "jogo/player-s-handbook-d-d-3-5e"
+    },
+    {
+      "id_jogo": 8624,
+      "nm_jogo": "Gloomhaven",
+      "nm_original": "Gloomhaven",
+      "ano_publicacao": 2017,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/8624_t.jpg",
+      "link": "jogo/gloomhaven"
+    },
+    {
+      "id_jogo": 12731,
+      "nm_jogo": "Dungeons & Dragons (5ª Edição): Kit Introdutório",
+      "nm_original": "Dungeons & Dragons (5th Edition) - Starter Set",
+      "ano_publicacao": 2014,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/12731_t.jpg",
+      "link": "jogo/dungeons-dragons-5th-edition-starter-set"
+    },
+    {
+      "id_jogo": 8858,
+      "nm_jogo": "Terraforming Mars",
+      "nm_original": "Terraforming Mars",
+      "ano_publicacao": 2016,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/8858_t.jpg",
+      "link": "jogo/terraforming-mars"
+    },
+    {
+      "id_jogo": 32507,
+      "nm_jogo": "Ark Nova",
+      "nm_original": "Ark Nova",
+      "ano_publicacao": 2021,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/32507_t.jpg",
+      "link": "jogo/ark-nova"
+    },
+    {
+      "id_jogo": 20275,
+      "nm_jogo": "Vampiro: A Máscara (5ª Edição)",
+      "nm_original": "Vampire: The Masquerade (5th Edition) - Core Book",
+      "ano_publicacao": 2018,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/20275_t.jpg",
+      "link": "jogo/vampire-the-masquerade-5th-edition-core-book"
+    },
+    {
+      "id_jogo": 1127,
+      "nm_jogo": "Dungeons & Dragons",
+      "nm_original": "The New Easy to Master Dungeons & Dragons",
+      "ano_publicacao": 1991,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/1127_t.jpg",
+      "link": "jogo/the-new-easy-to-master-dungeons-dragons"
+    },
+    {
+      "id_jogo": 404,
+      "nm_jogo": "Terra Mystica",
+      "nm_original": "Terra Mystica",
+      "ano_publicacao": 2012,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/404_t.jpg",
+      "link": "jogo/terra-mystica"
+    },
+    {
+      "id_jogo": 13196,
+      "nm_jogo": "Brass: Lancashire",
+      "nm_original": "Brass: Lancashire",
+      "ano_publicacao": 2017,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/13196_t.jpg",
+      "link": "jogo/brass-lancashire"
+    },
+    {
+      "id_jogo": 21138,
+      "nm_jogo": "Vampire: The Dark Ages",
+      "nm_original": "Vampire: The Dark Ages",
+      "ano_publicacao": 1996,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/21138_t.jpg",
+      "link": "jogo/vampire-the-dark-ages"
+    },
+    {
+      "id_jogo": 12713,
+      "nm_jogo": "Captive",
+      "nm_original": "Graphic Novel Adventures: Captive",
+      "ano_publicacao": 2014,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/12713_t.jpg",
+      "link": "jogo/graphic-novel-adventures-captive"
+    },
+    {
+      "id_jogo": 25048,
+      "nm_jogo": "Gloomhaven: Presas do Leão",
+      "nm_original": "Gloomhaven: Jaws of the Lion",
+      "ano_publicacao": 2020,
+      "thumb": "https://storage.googleapis.com/ludopedia-capas/25048_t.jpg",
+      "link": "jogo/gloomhaven-jaws-of-the-lion"
+    }
+  ],
+  "total": 81778
+}
