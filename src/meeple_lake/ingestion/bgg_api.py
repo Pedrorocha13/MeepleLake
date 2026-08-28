@@ -3,28 +3,31 @@ import requests
 import json
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
-ACCESS_TOKEN = os.getenv("LUDOPEDIA_ACCESS_TOKEN")
+ACCESS_TOKEN = os.getenv("BGG_token")
 
 headers = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
 
-url = "https://ludopedia.com.br/api/v1/jogos"
+url = "https://boardgamegeek.com/xmlapi2/thing"
 
 params = {
-    "page": 1,
-    "rows": 20
+    "id": "174431",
+    "stats": 1
 }
+
+game_id = params["id"]
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def download_ludopedia_data(url: str, headers: dict, params:dict) -> dict:
+def download_bgg_data(url: str, headers: dict, params:dict) -> str:
     response = requests.get(
-        url,
+        url=url,
         headers=headers,
         params=params,
         timeout=30
@@ -32,29 +35,24 @@ def download_ludopedia_data(url: str, headers: dict, params:dict) -> dict:
 
     response.raise_for_status()
 
-    data = response.json()
+    data = response.text
 
     if not data:
         logging.warning("Dados nulos!")
-        return[]
+        return ""
     
-    output_path = 'data/boardgames.json'
+    output_path = f'data/bronze/bgg/thing/game_{game_id}_{datetime.now().strftime("%Y-%m-%d")}.xml'
     output_dir = Path(output_path).parent
     output_dir.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, 'w', encoding="utf-8") as f:
-        json.dump(
-            data,
-            f,
-            ensure_ascii=False,
-            indent=2
-    )
+        f.write(data)
 
     logging.info(f"Arquivo salvo em {output_path}")
 
     return data
 
-download_ludopedia_data(
+download_bgg_data(
     url=url,
     headers=headers,
     params=params
