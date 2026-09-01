@@ -7,6 +7,7 @@ requires-python = ">=3.14"
 dependencies = [
     "minio>=7.2.20",
     "pandas>=3.0.5",
+    "pathlib>=1.0.1",
     "pyarrow>=25.0.1",
     "python-dotenv>=1.2.3",
     "requests>=2.34.2",
