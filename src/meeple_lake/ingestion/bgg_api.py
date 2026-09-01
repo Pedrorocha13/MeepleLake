@@ -1,9 +1,9 @@
 import os
 import requests
-import json
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import datetime
+import time
 
 load_dotenv()
 
@@ -15,17 +15,20 @@ headers = {
 
 url = "https://boardgamegeek.com/xmlapi2/thing"
 
-params = {
-    "id": "174431",
-    "stats": 1
-}
+game_ids = [1, 2, 3, 4, 5, 6, 7]
 
-game_id = params["id"]
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def download_bgg_data(url: str, headers: dict, params:dict) -> str:
+def chunk_list(items, size):
+    for i in range(0, len(items), size):
+        yield items[i:i + size]
+    
+
+
+def download_bgg_data(url: str, headers: dict, params:dict, batch_number:int) -> str:
+    
     response = requests.get(
         url=url,
         headers=headers,
@@ -41,7 +44,7 @@ def download_bgg_data(url: str, headers: dict, params:dict) -> str:
         logging.warning("Dados nulos!")
         return ""
     
-    output_path = f'data/bronze/bgg/thing/game_{game_id}_{datetime.now().strftime("%Y-%m-%d")}.xml'
+    output_path = f'data/bronze/bgg/thing/batch_{batch_number:04d}_{datetime.now().strftime("%Y-%m-%d")}.xml'
     output_dir = Path(output_path).parent
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -49,11 +52,26 @@ def download_bgg_data(url: str, headers: dict, params:dict) -> str:
         f.write(data)
 
     logging.info(f"Arquivo salvo em {output_path}")
-
+    
     return data
+    
+for batch_number,batch in enumerate(
+    chunk_list(game_ids, 3), start=1
+    ):
+    ids_param = ",".join(map(str,batch))
+    params = {
+    "id": ids_param,
+    "stats": 1
+    }
+    logging.info(f"Processando batch -> {batch} - IDs: {ids_param}")
 
-download_bgg_data(
+    download_bgg_data(
     url=url,
     headers=headers,
-    params=params
-    )
+    params=params,
+    batch_number=batch_number,
+    ) 
+    
+    time.sleep(5)
+
+

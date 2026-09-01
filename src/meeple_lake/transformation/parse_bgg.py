@@ -16,6 +16,21 @@ bronze_path = (
     / "thing"
 )
 
+silver_path = ( 
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "games"
+)
+
+silver_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+output_file = silver_path / "games.parquet"
+
 
 def get_int(element: Element, tag: str, default: int | None = None) -> int | None:
 
@@ -159,7 +174,7 @@ def parse_game(xml_path: Path) -> dict:
                             rank_value
             )
 
-
+    
     description_element = item.find("description")
 
     if (
@@ -176,7 +191,6 @@ def parse_game(xml_path: Path) -> dict:
     else:
         description = None
 
- 
     return {
         "id": game_id,
         "name": game_name,
@@ -200,6 +214,29 @@ def parse_game(xml_path: Path) -> dict:
         "num_weights": num_weights,
         "description": description,
     }
+    
+games = []
 
+for xml_file in bronze_path.glob("*.xml"):
+    game = parse_game(xml_file)
+    games.append(game)
+    
+df = pd.DataFrame(games)
+
+print(df.head())
+print(df.dtypes)
+print(df.isna().sum())
+
+df.to_parquet(
+    output_file,
+    index=False
+)
+
+print(f"silver  salva em: {output_file}")
+
+df_test = pd.read_parquet(output_file)
+
+print(df_test.head())
+print(df_test.dtypes)
 
 
