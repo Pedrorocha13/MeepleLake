@@ -7,11 +7,14 @@ import time
 
 load_dotenv()
 
-ACCESS_TOKEN = os.getenv("BGG_token")
+ACCESS_TOKEN = os.getenv("BGG_TOKEN")
 
 headers = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"
 }
+
+if ACCESS_TOKEN is None:
+    raise ValueError("BGG_TOKEN não encontrada no .env")
 
 url = "https://boardgamegeek.com/xmlapi2/thing"
 

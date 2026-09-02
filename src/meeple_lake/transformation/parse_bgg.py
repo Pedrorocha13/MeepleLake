@@ -1,10 +1,14 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
 import html
-
+import logging
 from pathlib import Path
 from xml.etree.ElementTree import Element
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
@@ -68,24 +72,9 @@ def get_float(element: Element, tag: str, default: float | None = None) -> float
         return default
 
 
-def parse_game(xml_path: Path) -> dict:
-
-    tree = ET.parse(xml_path)
-    root = tree.getroot()
-
-    item = root.find("item")
-
-    if item is None:
-        raise ValueError(
-            f"XML {xml_path.name} não contém elemento <item>"
-        )
+def parse_game(item: Element) -> dict:
 
     game_id_raw = item.get("id")
-
-    if game_id_raw is None:
-        raise ValueError(
-            f"XML {xml_path.name} não contém id do jogo"
-        )
 
     game_id = int(game_id_raw)
 
@@ -153,7 +142,6 @@ def parse_game(xml_path: Path) -> dict:
 
             num_weights = get_int(ratings,"numweights")
 
-            # Ranking
             ranks = ratings.find("ranks")
 
             if ranks is not None:
@@ -214,29 +202,52 @@ def parse_game(xml_path: Path) -> dict:
         "num_weights": num_weights,
         "description": description,
     }
-    
+
 games = []
 
+raw_count = 0
+parsed_count = 0
+error_count = 0
+
 for xml_file in bronze_path.glob("*.xml"):
-    game = parse_game(xml_file)
-    games.append(game)
-    
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+
+    items = root.findall("item")
+
+    raw_count += len(items)
+
+    for item in items:
+        try:
+            game = parse_game(item)
+            games.append(game)
+            parsed_count += 1
+        except Exception as e:
+            error_count += 1
+
+            logging.error(f"Erro processando game_id={item.get('id')}: {e}")
+
+if raw_count != parsed_count + error_count:
+    raise RuntimeError(
+        "Inconsistênciaa entre registros lidos, processados com erro"
+    )
+
 df = pd.DataFrame(games)
 
-print(df.head())
-print(df.dtypes)
-print(df.isna().sum())
+duplicate_count = df["id"].duplicated().sum()
+
+logging.info(f"IDs duplicados encontrados: {duplicate_count}")
+logging.info(f"Jogos processados: {len(df)}")
 
 df.to_parquet(
     output_file,
     index=False
 )
 
-print(f"silver  salva em: {output_file}")
-
-df_test = pd.read_parquet(output_file)
-
-print(df_test.head())
-print(df_test.dtypes)
-
-
+logging.info(
+    f"Processamento concluído | "
+    f"raw={raw_count} | "
+    f"parsed={parsed_count} | "
+    f"errors={error_count}"
+)
+logging.info(f"Silver salva em: {output_file}")
