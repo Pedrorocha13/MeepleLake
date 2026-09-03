@@ -4,6 +4,8 @@ import html
 import logging
 from pathlib import Path
 from xml.etree.ElementTree import Element
+from validate_bgg import validate_silver
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -204,6 +206,8 @@ def parse_game(item: Element) -> dict:
     }
 
 games = []
+categories = []
+game_categories = []
 
 raw_count = 0
 parsed_count = 0
@@ -218,6 +222,23 @@ for xml_file in bronze_path.glob("*.xml"):
     raw_count += len(items)
 
     for item in items:
+        game_id_raw = item.get("id")
+        game_id = int(game_id_raw)
+        for link in item.findall("link"):
+            link_type = link.get("type")
+            if link.get("type") == "boardgamecategory":
+                print(link.get("id"), link.get("value"))
+                category_id = link.get("id")
+                category_name = link.get("value")
+                categories.append({
+                    "category_id": int(category_id),
+                    "category_name": category_name,
+                    })
+                
+                game_categories.append({
+                    "game_id": game_id,
+                    "category_id": int(category_id),
+                    })
         try:
             game = parse_game(item)
             games.append(game)
@@ -231,8 +252,23 @@ if raw_count != parsed_count + error_count:
     raise RuntimeError(
         "Inconsistênciaa entre registros lidos, processados com erro"
     )
+df_categories = pd.DataFrame(categories)
 
-df = pd.DataFrame(games)
+df_game_categories = pd.DataFrame(game_categories)
+
+print(game_categories)
+
+results = validate_silver(df)
+#print(results)
+
+"""linha de testes abaixo"""
+"""--------------------------"""
+
+validation_results = results
+
+logging.info(
+    f"Validação concluída: {validation_results}"
+)
 
 duplicate_count = df["id"].duplicated().sum()
 
