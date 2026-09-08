@@ -222,26 +222,32 @@ for xml_file in bronze_path.glob("*.xml"):
     raw_count += len(items)
 
     for item in items:
-        game_id_raw = item.get("id")
-        game_id = int(game_id_raw)
-        for link in item.findall("link"):
-            link_type = link.get("type")
-            if link.get("type") == "boardgamecategory":
-                print(link.get("id"), link.get("value"))
-                category_id = link.get("id")
-                category_name = link.get("value")
-                categories.append({
-                    "category_id": int(category_id),
-                    "category_name": category_name,
-                    })
-                
-                game_categories.append({
-                    "game_id": game_id,
-                    "category_id": int(category_id),
-                    })
         try:
             game = parse_game(item)
             games.append(game)
+
+            game_id = game["id"]
+
+            for link in item.findall("link"):
+                link_type = link.get("type")
+
+                if link.get("type") == "boardgamecategory":
+                    #print(link.get("id"), link.get("value"))
+                    category_id = link.get("id")
+                    category_name = link.get("value")
+
+                    if categories is None:
+                        continue
+
+                    categories.append({
+                        "category_id": int(category_id),
+                        "category_name": category_name,
+                        })
+                    
+                    game_categories.append({
+                        "game_id": game_id,
+                        "category_id": int(category_id),
+                        })
             parsed_count += 1
         except Exception as e:
             error_count += 1
@@ -252,11 +258,38 @@ if raw_count != parsed_count + error_count:
     raise RuntimeError(
         "Inconsistênciaa entre registros lidos, processados com erro"
     )
+
+df = pd.DataFrame(games)
+
 df_categories = pd.DataFrame(categories)
+df_categories = df_categories.drop_duplicates(
+    subset=["category_id"]
+)
 
 df_game_categories = pd.DataFrame(game_categories)
+duplicate_relations = df_game_categories.duplicated(
+    subset=["game_id", "category_id"]
+).sum()
 
-print(game_categories)
+invalid_categories = ~df_game_categories[
+    "category_id"
+].isin(df_categories["category_id"])
+
+invalid_games = ~df_game_categories[
+    "game_id"
+].isin(df["id"])
+
+print(df_categories)
+print(df_game_categories)
+
+print("Categorias:", len(df_categories))
+print(
+    "Categorias únicas:",
+    df_categories["category_id"].nunique()
+)
+print("Relações duplicadas:", duplicate_relations)
+print("Categorias inexistentes:", invalid_categories.sum())
+print("Jogos inexistentes: ", invalid_games.sum())
 
 results = validate_silver(df)
 #print(results)
