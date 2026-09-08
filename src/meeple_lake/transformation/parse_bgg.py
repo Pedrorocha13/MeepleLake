@@ -22,7 +22,7 @@ bronze_path = (
     / "thing"
 )
 
-silver_path = ( 
+games_silver_path = ( 
     PROJECT_ROOT
     / "data"
     / "silver"
@@ -30,13 +30,42 @@ silver_path = (
     / "games"
 )
 
-silver_path.mkdir(
+games_silver_path.mkdir(
     parents=True,
     exist_ok=True
 )
 
-output_file = silver_path / "games.parquet"
+game_categories_silver_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "game_categories"
+)
 
+game_categories_silver_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+categories_silver_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "categories"
+)
+
+categories_silver_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+games_output = games_silver_path / "games.parquet"
+
+game_categories_output = game_categories_silver_path / "game_categories.parquet"
+
+categories_output = categories_silver_path / "categories.parquet"
 
 def get_int(element: Element, tag: str, default: int | None = None) -> int | None:
 
