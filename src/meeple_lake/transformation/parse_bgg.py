@@ -61,11 +61,41 @@ categories_silver_path.mkdir(
     exist_ok=True
 )
 
+game_mechanics_s_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "game_mechanics"
+)
+
+game_mechanics_s_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+mechanics_s_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "mechanics"
+)
+
+mechanics_s_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
 games_output = games_silver_path / "games.parquet"
 
 game_categories_output = game_categories_silver_path / "game_categories.parquet"
 
 categories_output = categories_silver_path / "categories.parquet"
+
+game_mechanics_output = game_mechanics_s_path / "game_mechanics.parquet"
+
+mechanics_output = mechanics_s_path / "mechanics.parquet"
 
 def get_int(element: Element, tag: str, default: int | None = None) -> int | None:
 
@@ -237,6 +267,8 @@ def parse_game(item: Element) -> dict:
 games = []
 categories = []
 game_categories = []
+mechanics = []
+game_mechanics = []
 
 raw_count = 0
 parsed_count = 0
@@ -260,12 +292,12 @@ for xml_file in bronze_path.glob("*.xml"):
             for link in item.findall("link"):
                 link_type = link.get("type")
 
-                if link.get("type") == "boardgamecategory":
+                if link_type == "boardgamecategory":
                     #print(link.get("id"), link.get("value"))
                     category_id = link.get("id")
                     category_name = link.get("value")
 
-                    if categories is None:
+                    if category_id is None:
                         continue
 
                     categories.append({
@@ -277,6 +309,24 @@ for xml_file in bronze_path.glob("*.xml"):
                         "game_id": game_id,
                         "category_id": int(category_id),
                         })
+
+                elif link_type == "boardgamemechanic":
+                    mechanic_id = link.get("id")
+                    mechanic_name = link.get("value")
+
+                    if mechanic_id is None:
+                        continue
+
+                    mechanics.append({
+                        "mechanic_id": int(mechanic_id),
+                        "mechanic_name": mechanic_name,
+                    })
+
+                    game_mechanics.append({
+                        "game_id": game_id,
+                        "mechanic_id": int(mechanic_id),
+                    })
+
             parsed_count += 1
         except Exception as e:
             error_count += 1
@@ -296,7 +346,7 @@ df_categories = df_categories.drop_duplicates(
 )
 
 df_game_categories = pd.DataFrame(game_categories)
-duplicate_relations = df_game_categories.duplicated(
+duplicate_relations_categories = df_game_categories.duplicated(
     subset=["game_id", "category_id"]
 ).sum()
 
@@ -308,17 +358,33 @@ invalid_games = ~df_game_categories[
     "game_id"
 ].isin(df["id"])
 
+df_mechanics = pd.DataFrame(mechanics)
+df_mechanics = df_mechanics.drop_duplicates(
+    subset=["mechanic_id"]
+)
+
+df_game_mechanics = pd.DataFrame(game_mechanics)
+duplicate_relations_mechanics = df_game_mechanics.duplicated(
+    subset=["game_id", "mechanic_id"]
+).sum()
+
+invalid_mechanic = ~df_game_mechanics[
+    "mechanic_id"
+].isin(df_mechanics["mechanic_id"])
+
 print(df_categories)
 print(df_game_categories)
+print(df_mechanics)
+print(df_game_mechanics)
 
-print("Categorias:", len(df_categories))
-print(
-    "Categorias únicas:",
-    df_categories["category_id"].nunique()
-)
-print("Relações duplicadas:", duplicate_relations)
-print("Categorias inexistentes:", invalid_categories.sum())
-print("Jogos inexistentes: ", invalid_games.sum())
+# print("Categorias:", len(df_categories))
+# print(
+#     "Categorias únicas:",
+#     df_categories["category_id"].nunique()
+# )
+# print("Relações de categorias duplicadas:", duplicate_relations_categories)
+# print("Categorias inexistentes:", invalid_categories.sum())
+# print("Jogos inexistentes: ", invalid_games.sum())
 
 results = validate_silver(df)
 #print(results)
@@ -338,7 +404,27 @@ logging.info(f"IDs duplicados encontrados: {duplicate_count}")
 logging.info(f"Jogos processados: {len(df)}")
 
 df.to_parquet(
-    output_file,
+    games_output,
+    index=False
+)
+
+df_categories.to_parquet(
+    categories_output, 
+    index=False
+)
+
+df_game_categories.to_parquet(
+    game_categories_output,
+    index=False
+)
+
+df_mechanics.to_parquet(
+    mechanics_output,
+    index=False
+)
+
+df_game_mechanics.to_parquet(
+    game_mechanics_output,
     index=False
 )
 
@@ -348,4 +434,21 @@ logging.info(
     f"parsed={parsed_count} | "
     f"errors={error_count}"
 )
-logging.info(f"Silver salva em: {output_file}")
+logging.info(f"Games salvos em: {games_output}")
+
+logging.info(
+    f"Categorias salvas: {len(df_categories)}"
+)
+
+logging.info(
+    f"Relações jogo-categoria salvas: {len(df_game_categories)}"
+)
+
+logging.info(
+    f"Mecanicas salvas: {len(df_mechanics)}"
+)
+
+logging.info(
+    f"Relações jogo-mecanicas salvas: {len(df_game_mechanics)}"
+)
+
