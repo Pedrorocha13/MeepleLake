@@ -87,6 +87,84 @@ mechanics_s_path.mkdir(
     exist_ok=True
 )
 
+game_designer_s_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "game_designer"
+)
+
+game_designer_s_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+designer_s_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "designer"
+)
+
+designer_s_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+game_artist_s_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "game_artist"
+)
+
+game_artist_s_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+artist_s_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "artist"
+)
+
+artist_s_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+game_publi_s_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "game_publisher"
+)
+
+game_publi_s_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+publi_s_path = (
+    PROJECT_ROOT
+    / "data"
+    / "silver"
+    / "bgg"
+    / "publisher"
+)
+
+publi_s_path.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
 games_output = games_silver_path / "games.parquet"
 
 game_categories_output = game_categories_silver_path / "game_categories.parquet"
@@ -96,6 +174,18 @@ categories_output = categories_silver_path / "categories.parquet"
 game_mechanics_output = game_mechanics_s_path / "game_mechanics.parquet"
 
 mechanics_output = mechanics_s_path / "mechanics.parquet"
+
+game_designer_output = game_designer_s_path / "game_designer.parquet"
+
+designer_output = designer_s_path / "designer.parquet"
+
+game_artist_output = game_artist_s_path / "game_artist.parquet"
+
+artist_output = artist_s_path / "artist.parquet"
+
+game_publi_output = game_publi_s_path / "game_publi.parquet"
+
+publi_output = publi_s_path / "publi.parquet"
 
 def get_int(element: Element, tag: str, default: int | None = None) -> int | None:
 
@@ -269,6 +359,12 @@ categories = []
 game_categories = []
 mechanics = []
 game_mechanics = []
+designer = []
+game_designer = []
+artist = []
+game_artist = []
+publi = []
+game_publi = []
 
 raw_count = 0
 parsed_count = 0
@@ -327,6 +423,57 @@ for xml_file in bronze_path.glob("*.xml"):
                         "mechanic_id": int(mechanic_id),
                     })
 
+                elif link_type == "boardgamedesigner":
+                    designer_id = link.get("id")
+                    designer_name = link.get("value")
+
+                    if designer_id is None:
+                        continue
+
+                    designer.append({
+                        "designer_id": int(designer_id),
+                        "designer_name": designer_name,
+                    })
+
+                    game_designer.append({
+                        "game_id": game_id,
+                        "designer_id": int(designer_id),
+                    })
+
+                elif link_type == "boardgameartist":
+                    artist_id = link.get("id")
+                    artist_name = link.get("value")
+
+                    if artist_id is None:
+                        continue
+
+                    artist.append({
+                        "artist_id": int(artist_id),
+                        "artist_name": artist_name,
+                    })
+
+                    game_artist.append({
+                        "game_id": game_id,
+                        "artist_id": int(artist_id),
+                    })
+
+                elif link_type == "boardgamepublisher":
+                    publi_id = link.get("id")
+                    publi_name = link.get("value")
+
+                    if publi_id is None:
+                        continue
+
+                    publi.append({
+                        "publi_id": int(publi_id),
+                        "publi_name": publi_name,
+                    })
+
+                    game_publi.append({
+                        "game_id": game_id,
+                        "publi_id": int(publi_id),
+                    })
+
             parsed_count += 1
         except Exception as e:
             error_count += 1
@@ -372,10 +519,47 @@ invalid_mechanic = ~df_game_mechanics[
     "mechanic_id"
 ].isin(df_mechanics["mechanic_id"])
 
-print(df_categories)
-print(df_game_categories)
-print(df_mechanics)
-print(df_game_mechanics)
+df_designers = pd.DataFrame(designer)
+df_designers = df_designers.drop_duplicates(
+    subset=["designer_id"]
+)
+
+df_game_designers = pd.DataFrame(game_designer)
+duplicate_relations_designers = df_game_designers.duplicated(
+    subset=["game_id", "designer_id"]
+).sum()
+
+invalid_designer = ~df_game_designers[
+    "designer_id"
+].isin(df_designers["designer_id"])
+
+df_artists = pd.DataFrame(artist)
+df_artists = df_artists.drop_duplicates(
+    subset=["artist_id"]
+)
+
+df_game_artist =  pd.DataFrame(game_artist)
+duplicate_relations_artist = df_game_artist.duplicated(
+    subset=["game_id", "artist_id"]
+).sum()
+
+invalid_artist = ~df_game_artist[
+    "artist_id"
+].isin(df_artists["artist_id"])
+
+df_publishers = pd.DataFrame(publi)
+df_publishers = df_publishers.drop_duplicates(
+    subset=["publi_id"]
+)
+
+df_game_publishers = pd.DataFrame(game_publi)
+duplicate_relations_publisher = df_game_publishers.duplicated(
+    subset=["game_id", "publi_id"]
+).sum()
+
+invalid_publisher = ~df_game_publishers[
+    "publi_id"
+].isin(df_publishers["publi_id"])
 
 # print("Categorias:", len(df_categories))
 # print(
@@ -390,7 +574,151 @@ results = validate_silver(df)
 #print(results)
 
 """linha de testes abaixo"""
+def extract_relation(
+        item,
+        game_id,
+        link_type, 
+        entity_id_column,
+        entity_name_column
+    ):
+
+    entities = []
+    relations = []
+
+    for link in item.findall("link"):
+
+        current_link_type = link.get("type")
+
+        if current_link_type == link_type:
+            #print(link.get("id"), link.get("value"))
+            entity_id = link.get("id")
+            entity_name = link.get("value")
+
+            if entity_id is None:
+                continue
+
+            entities.append({
+                "entity_id_column": int(entity_id),
+                "entity_name_column": entity_name,
+                })
+            
+            relations.append({
+                "game_id": game_id,
+                "entity_id_column": int(entity_id),
+                })
+            
+    return entities, relations 
+    
+new_categories, new_game_categories = extract_relation(
+    item=item,
+    game_id=game_id,
+    link_type="boardgamecategory",
+    entity_id_column="category_id",
+    entity_name_column="category_name",
+)
+
+categories.extend(new_categories)
+game_categories.extend(new_game_categories)
+
 """--------------------------"""
+
+def validate_relation(
+        relation_df,
+        parent_df,
+        relation_key,
+        parent_key,
+        relation_name
+):
+    invalid_rows = ~relation_df[relation_key].isin(parent_df[parent_key])
+    invalid_count = invalid_rows.sum()
+    logging.info(f"{relation_name} | inválidos: {invalid_count}")
+
+    if invalid_count > 0:
+        raise ValueError(
+            f"Falha de integridade em {relation_name}: "
+            f"{invalid_count} referências inválidas"
+        )
+    return invalid_count
+
+validate_relation(
+    relation_df=df_game_mechanics,
+    parent_df=df_mechanics,
+    relation_key="mechanic_id",
+    parent_key="mechanic_id",
+    relation_name="game_mechanics -> mechanics"
+)
+
+validate_relation(
+    relation_df=df_game_mechanics,
+    parent_df=df,
+    relation_key="game_id",
+    parent_key="id",
+    relation_name="game_mechanics -> games"
+)
+
+validate_relation(
+    relation_df=df_game_categories,
+    parent_df=df_categories,
+    relation_key="category_id",
+    parent_key="category_id",
+    relation_name="game_categories -> categories"
+)
+
+validate_relation(
+    relation_df=df_game_categories,
+    parent_df=df,
+    relation_key="game_id",
+    parent_key="id",
+    relation_name="game_categories -> games"
+)
+
+validate_relation(
+    relation_df=df_game_designers,
+    parent_df=df_designers,
+    relation_key="designer_id",
+    parent_key="designer_id",
+    relation_name="game_designers -> designer"
+)
+
+validate_relation(
+    relation_df=df_game_designers,
+    parent_df=df,
+    relation_key="game_id",
+    parent_key="id",
+    relation_name="game_designers -> games"
+)
+
+validate_relation(
+    relation_df=df_game_artist,
+    parent_df=df_artists,
+    relation_key="artist_id",
+    parent_key="artist_id",
+    relation_name="game_artists -> artists"
+)
+
+validate_relation(
+    relation_df=df_game_artist,
+    parent_df=df,
+    relation_key="game_id",
+    parent_key="id",
+    relation_name="game_artists -> games"
+)
+
+validate_relation(
+    relation_df=df_game_publishers,
+    parent_df=df_publishers,
+    relation_key="publi_id",
+    parent_key="publi_id",
+    relation_name="game_publishers -> publishers"
+)
+
+validate_relation(
+    relation_df=df_game_publishers,
+    parent_df=df,
+    relation_key="game_id",
+    parent_key="id",
+    relation_name="game_publishers -> games"
+)
 
 validation_results = results
 
@@ -428,6 +756,36 @@ df_game_mechanics.to_parquet(
     index=False
 )
 
+df_designers.to_parquet(
+    designer_output,
+    index=False
+)
+
+df_game_designers.to_parquet(
+    game_designer_output,
+    index=False
+)
+
+df_artists.to_parquet(
+    artist_output,
+    index=False
+)
+
+df_game_artist.to_parquet(
+    game_artist_output,
+    index=False
+)
+
+df_publishers.to_parquet(
+    publi_output,
+    index=False
+)
+
+df_game_publishers.to_parquet(
+    game_publi_output,
+    index=False
+)
+
 logging.info(
     f"Processamento concluído | "
     f"raw={raw_count} | "
@@ -451,4 +809,26 @@ logging.info(
 logging.info(
     f"Relações jogo-mecanicas salvas: {len(df_game_mechanics)}"
 )
+logging.info(
+    f"Designers salvos: {len(df_designers)}"
+)
 
+logging.info(
+    f"Relações jogo-designers salvas: {len(df_game_designers)}"
+)
+
+logging.info(
+    f"Artistas salvos: {len(df_artists)}"
+)
+
+logging.info(
+    f"Relações jogo-artistas salvas: {len(df_game_artist)}"
+)
+
+logging.info(
+    f"Publishers salvas: {len(df_publishers)}"
+)
+
+logging.info(
+    f"Relações jogo-publishers salvas: {len(df_game_publishers)}"
+)
