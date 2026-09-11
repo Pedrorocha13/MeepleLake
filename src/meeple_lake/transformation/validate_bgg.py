@@ -40,3 +40,21 @@ def validate_silver(df):
         logging.warning("Foram encontradas validações problemáticas na Silver")
 
     return checks
+
+def validate_relation(
+        relation_df,
+        parent_df,
+        relation_key,
+        parent_key,
+        relation_name
+):
+    invalid_rows = ~relation_df[relation_key].isin(parent_df[parent_key])
+    invalid_count = invalid_rows.sum()
+    logging.info(f"{relation_name} | inválidos: {invalid_count}")
+
+    if invalid_count > 0:
+        raise ValueError(
+            f"Falha de integridade em {relation_name}: "
+            f"{invalid_count} referências inválidas"
+        )
+    return invalid_count

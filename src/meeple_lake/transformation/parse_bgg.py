@@ -4,8 +4,7 @@ import html
 import logging
 from pathlib import Path
 from xml.etree.ElementTree import Element
-from validate_bgg import validate_silver
-
+from validate_bgg import validate_silver, validate_relation
 
 logging.basicConfig(
     level=logging.INFO,
@@ -354,6 +353,40 @@ def parse_game(item: Element) -> dict:
         "description": description,
     }
 
+def extract_relation(
+        item,
+        game_id,
+        link_type, 
+        entity_id_column,
+        entity_name_column
+    ):
+
+    entities = []
+    relations = []
+
+    for link in item.findall("link"):
+
+        current_link_type = link.get("type")
+
+        if current_link_type == link_type:
+            entity_id = link.get("id")
+            entity_name = link.get("value")
+
+            if entity_id is None:
+                continue
+
+            entities.append({
+                entity_id_column: int(entity_id),
+                entity_name_column: entity_name,
+                })
+            
+            relations.append({
+                "game_id": game_id,
+                entity_id_column: int(entity_id),
+                })
+            
+    return entities, relations 
+
 games = []
 categories = []
 game_categories = []
@@ -365,6 +398,38 @@ artist = []
 game_artist = []
 publi = []
 game_publi = []
+
+RELATIONS = {
+
+    "boardgamecategory": {
+        "entity_id": "category_id",
+        "entity_name": "category_name",
+    },
+    "boardgamemechanic": {
+        "entity_id": "mechanic_id",
+        "entity_name": "mechanic_name",
+    },
+    "boardgamedesigner": {
+        "entity_id": "designer_id",
+        "entity_name": "designer_name",
+    },
+    "boardgameartist": {
+        "entity_id": "artist_id",
+        "entity_name": "artist_name",
+    },
+    "boardgamepublisher": {
+        "entity_id": "publisher_id",
+        "entity_name": "publisher_name",
+    },
+}
+
+RELATION_TARGETS = {
+    "boardgamecategory": (categories, game_categories),
+    "boardgamemechanic": (mechanics, game_mechanics),
+    "boardgamedesigner": (designer, game_designer),
+    "boardgameartist": (artist, game_artist),
+    "boardgamepublisher": (publi, game_publi),
+}
 
 raw_count = 0
 parsed_count = 0
@@ -379,106 +444,36 @@ for xml_file in bronze_path.glob("*.xml"):
     raw_count += len(items)
 
     for item in items:
+
         try:
             game = parse_game(item)
             games.append(game)
 
             game_id = game["id"]
+            
 
-            for link in item.findall("link"):
-                link_type = link.get("type")
+            for link_type, configuration in RELATIONS.items():
 
-                if link_type == "boardgamecategory":
-                    #print(link.get("id"), link.get("value"))
-                    category_id = link.get("id")
-                    category_name = link.get("value")
+                new_entities, new_relations = extract_relation(
+                    item=item,
+                    game_id=game_id,
+                    link_type=link_type,
+                    entity_id_column=configuration["entity_id"],
+                    entity_name_column=configuration["entity_name"],
+                )
 
-                    if category_id is None:
-                        continue
+                entity_list, relation_list = RELATION_TARGETS[link_type]
 
-                    categories.append({
-                        "category_id": int(category_id),
-                        "category_name": category_name,
-                        })
-                    
-                    game_categories.append({
-                        "game_id": game_id,
-                        "category_id": int(category_id),
-                        })
-
-                elif link_type == "boardgamemechanic":
-                    mechanic_id = link.get("id")
-                    mechanic_name = link.get("value")
-
-                    if mechanic_id is None:
-                        continue
-
-                    mechanics.append({
-                        "mechanic_id": int(mechanic_id),
-                        "mechanic_name": mechanic_name,
-                    })
-
-                    game_mechanics.append({
-                        "game_id": game_id,
-                        "mechanic_id": int(mechanic_id),
-                    })
-
-                elif link_type == "boardgamedesigner":
-                    designer_id = link.get("id")
-                    designer_name = link.get("value")
-
-                    if designer_id is None:
-                        continue
-
-                    designer.append({
-                        "designer_id": int(designer_id),
-                        "designer_name": designer_name,
-                    })
-
-                    game_designer.append({
-                        "game_id": game_id,
-                        "designer_id": int(designer_id),
-                    })
-
-                elif link_type == "boardgameartist":
-                    artist_id = link.get("id")
-                    artist_name = link.get("value")
-
-                    if artist_id is None:
-                        continue
-
-                    artist.append({
-                        "artist_id": int(artist_id),
-                        "artist_name": artist_name,
-                    })
-
-                    game_artist.append({
-                        "game_id": game_id,
-                        "artist_id": int(artist_id),
-                    })
-
-                elif link_type == "boardgamepublisher":
-                    publi_id = link.get("id")
-                    publi_name = link.get("value")
-
-                    if publi_id is None:
-                        continue
-
-                    publi.append({
-                        "publi_id": int(publi_id),
-                        "publi_name": publi_name,
-                    })
-
-                    game_publi.append({
-                        "game_id": game_id,
-                        "publi_id": int(publi_id),
-                    })
+                entity_list.extend(new_entities)
+                relation_list.extend(new_relations)
 
             parsed_count += 1
+
         except Exception as e:
             error_count += 1
 
             logging.error(f"Erro processando game_id={item.get('id')}: {e}")
+        
 
 if raw_count != parsed_count + error_count:
     raise RuntimeError(
@@ -549,96 +544,24 @@ invalid_artist = ~df_game_artist[
 
 df_publishers = pd.DataFrame(publi)
 df_publishers = df_publishers.drop_duplicates(
-    subset=["publi_id"]
+    subset=["publisher_id"]
 )
 
 df_game_publishers = pd.DataFrame(game_publi)
 duplicate_relations_publisher = df_game_publishers.duplicated(
-    subset=["game_id", "publi_id"]
+    subset=["game_id", "publisher_id"]
 ).sum()
 
 invalid_publisher = ~df_game_publishers[
-    "publi_id"
-].isin(df_publishers["publi_id"])
-
-# print("Categorias:", len(df_categories))
-# print(
-#     "Categorias únicas:",
-#     df_categories["category_id"].nunique()
-# )
-# print("Relações de categorias duplicadas:", duplicate_relations_categories)
-# print("Categorias inexistentes:", invalid_categories.sum())
-# print("Jogos inexistentes: ", invalid_games.sum())
+    "publisher_id"
+].isin(df_publishers["publisher_id"])
 
 results = validate_silver(df)
 #print(results)
 
 """linha de testes abaixo"""
-def extract_relation(
-        item,
-        game_id,
-        link_type, 
-        entity_id_column,
-        entity_name_column
-    ):
-
-    entities = []
-    relations = []
-
-    for link in item.findall("link"):
-
-        current_link_type = link.get("type")
-
-        if current_link_type == link_type:
-            #print(link.get("id"), link.get("value"))
-            entity_id = link.get("id")
-            entity_name = link.get("value")
-
-            if entity_id is None:
-                continue
-
-            entities.append({
-                "entity_id_column": int(entity_id),
-                "entity_name_column": entity_name,
-                })
-            
-            relations.append({
-                "game_id": game_id,
-                "entity_id_column": int(entity_id),
-                })
-            
-    return entities, relations 
-    
-new_categories, new_game_categories = extract_relation(
-    item=item,
-    game_id=game_id,
-    link_type="boardgamecategory",
-    entity_id_column="category_id",
-    entity_name_column="category_name",
-)
-
-categories.extend(new_categories)
-game_categories.extend(new_game_categories)
 
 """--------------------------"""
-
-def validate_relation(
-        relation_df,
-        parent_df,
-        relation_key,
-        parent_key,
-        relation_name
-):
-    invalid_rows = ~relation_df[relation_key].isin(parent_df[parent_key])
-    invalid_count = invalid_rows.sum()
-    logging.info(f"{relation_name} | inválidos: {invalid_count}")
-
-    if invalid_count > 0:
-        raise ValueError(
-            f"Falha de integridade em {relation_name}: "
-            f"{invalid_count} referências inválidas"
-        )
-    return invalid_count
 
 validate_relation(
     relation_df=df_game_mechanics,
@@ -707,8 +630,8 @@ validate_relation(
 validate_relation(
     relation_df=df_game_publishers,
     parent_df=df_publishers,
-    relation_key="publi_id",
-    parent_key="publi_id",
+    relation_key="publisher_id",
+    parent_key="publisher_id",
     relation_name="game_publishers -> publishers"
 )
 
